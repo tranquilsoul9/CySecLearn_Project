@@ -1,5 +1,4 @@
-/* eslint-disable */
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useCookies } from "react-cookie";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -11,11 +10,45 @@ export default function Login() {
   const [cookies, setCookie, removeCookie] = useCookies(["user"]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [recaptchaToken, setRecaptchaToken] = useState(""); // To store reCAPTCHA response
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // Dynamically load the reCAPTCHA script
+    const loadRecaptcha = () => {
+      const recaptchaScript = document.createElement("script");
+      recaptchaScript.src = "https://www.google.com/recaptcha/api.js?render=explicit";
+      recaptchaScript.async = true;
+      recaptchaScript.defer = true;
+      document.head.appendChild(recaptchaScript);
+    };
+
+    loadRecaptcha();
+
+    // Clean up script on component unmount
+    return () => {
+      document.head.removeChild(document.querySelector("script[src='https://www.google.com/recaptcha/api.js?render=explicit']"));
+    };
+  }, []);
+
+  const handleRecaptcha = () => {
+    window.grecaptcha.render("recaptcha-container", {
+      sitekey: "6LfH9yoqAAAAAPUVeE06QVMqeZZ7mjFE_7cETIe8", // Replace with your actual Site Key
+      callback: (token) => {
+        setRecaptchaToken(token);
+      },
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!recaptchaToken) {
+      notify("Please complete the CAPTCHA.");
+      return;
+    }
+
     try {
       const data = await api.login(email, password);
       console.log(data);
@@ -39,14 +72,6 @@ export default function Login() {
       draggable: true,
       progress: undefined,
     });
-
-  // if (loading) {
-  //   return (
-  //     <div className="flex justify-center items-center h-[100vh]">
-  //       <Oval color="#fd2f6e" height={80} width={80} />
-  //     </div>
-  //   );
-  // }
 
   return (
     <>
@@ -98,6 +123,10 @@ export default function Login() {
                 minLength={6}
               />
             </label>
+
+            {/* reCAPTCHA */}
+            <div id="recaptcha-container" className="flex justify-center items-center mt-6 mb-6 md:mt-8 md:mb-8"></div>
+
             <div className="w-[100%] flex justify-center items-center">
               <button className="text-white bg-[#0287BF] px-4 py-2 md:px-6 md:py-3 m-2 rounded-full font-semibold w-fit text-lg md:text-xl cursor-pointer hover:bg-[#E1E9F4] hover:text-[#0287BF]">
                 Login
