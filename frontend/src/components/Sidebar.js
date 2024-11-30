@@ -35,6 +35,11 @@ export default (Sidebar) => {
       <a className="menu-item" href="/WSA_Home_Page">
         Website Security Assessment
       </a>
+      
+      <a className="menu-VULN_TEST" href="file:///home/ayush/custom-dvwa/CySec/index.html">
+        Website Vulnerability Assessment
+      </a>
+    
 
       <a className="menu-item" href="/WSA_Home_Page">
         Security Asssessment Home
